@@ -40,7 +40,7 @@ printf '\033c'
 ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 hwclock --systohc
 
-pacman -S --noconfirm sed
+pacman -Sy --noconfirm sed
 sed -i "s/^#en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/" /etc/pacman.conf
 sed -i "s/^#ru_RU.UTF-8 UTF-8$/ru_RU.UTF-8 UTF-8/" /etc/pacman.conf
 locale-gen
@@ -57,7 +57,7 @@ echo "::1             localhost" >>/etc/hosts
 echo "127.0.1.1       $hostname.localdomain $hostname" >>/etc/hosts
 mkinitcpio -P
 
-pacman -S --noconfirm grub os-prober efibootmgr
+pacman -Sy --noconfirm grub os-prober efibootmgr
 echo "Enter EFI partition: "
 read efipartition
 mkdir /boot/efi
@@ -69,7 +69,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 echo "Installing arch linux repositories"
 sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 8/" /etc/pacman.conf
-pacman -S artix-archlinux-support
+pacman -Sy --noconfirm artix-archlinux-support
 echo '
 # Arch
 [extra]
@@ -89,7 +89,7 @@ pacman -Syu --noconfirm zsh terminus-font doas neovim termdown ripgrep gcc make 
 	zip unzip unrar p7zip xdotool dosfstools ntfs-3g git sxhkd pipewire pipewire-alsa pipewire-pulse wireplumber helvum \
 	rsync qutebrowser dash xcompmgr picom libnotify dunst slock jq aria2 cowsay \
 	dhcpcd connman wpa_supplicant pamixer libconfig \
-	bluez bluez-utils base-devel
+	bluez bluez-utils base-devel opendoas
 
 setfont ter-i18n.psf.gz
 
@@ -98,7 +98,6 @@ passwd
 
 echo 'Enter username:'
 read username
-groupadd wheel
 useradd -m -G wheel,video,audio,input,power,storage,optical,lp,scanner,dbus,uucp -s /bin/zsh $username
 echo "Enter $username password:"
 passwd $username
@@ -141,11 +140,11 @@ vendor=$(lscpu | grep "Vendor" | awk '{print $3}')
 case $vendor in
 *Intel* | *Iotel*)
 	echo "Your processor is intel!"
-	pacman -Sy intel-ucode
+	pacman -Sy --noconfirm intel-ucode
 	;;
 *AMD*)
 	echo "Your processor is AMD!"
-	pacman -Sy amd-ucode
+	pacman -Sy --noconfirm amd-ucode
 	;;
 *)
 	echo "I don't sure what your cpu is, exiting..."
@@ -161,17 +160,17 @@ case $graphic in
 	echo "Warning! If you have nvidia card <800 you need install different driver. Continue? (Y/n)"
 	read notlegacy
 	if [[ $notlegacy = "Y" || $notlegacy = "y" ]]; then
-		pacman -Sy nvidia libva-nvidia-driver libvdpau ffnvcodec-headers cuda cuda-tools
+		pacman -Sy --noconfirm nvidia libva-nvidia-driver libvdpau ffnvcodec-headers
 		echo "blacklist nouveau" >/etc/modprobe.d/nouveau_blacklist.conf
 	fi
 	;;
 AMD | amd | [Aa])
 	# FIXME: Replace packages
-	pacman -Sy mesa-dri vulkan-loader mesa-vulkan-radeon xf86-video-amdgpu mesa-vaapi mesa-vdpau
+	pacman -Sy --noconfirm mesa-dri vulkan-loader mesa-vulkan-radeon xf86-video-amdgpu mesa-vaapi mesa-vdpau
 	;;
 [Ii]ntel | [Ii])
 	# FIXME: Replace packages
-	pacman -Sy mesa-dri vulkan-loader mesa-vulkan-intel intel-video-accel
+	pacman -Sy --noconfirm mesa-dri vulkan-loader mesa-vulkan-intel intel-video-accel
 	;;
 esac
 
@@ -227,7 +226,7 @@ yay -Y --devel
 yay -S xremap-x11-bin
 
 echo "Installing scripts"
-chmod +x ~/.local/bin/*
+chmod +x ~/.local/bin -R
 
 echo "Installation Finish"
 ai4_path=/home/$username/afterall.bash
