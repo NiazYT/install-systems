@@ -29,7 +29,8 @@ echo "Would you like to reboot? (Recommend) (Y/n)"
 read doreboot
 case $doreboot in
 "[Yy]")
-	umount /mnt
+	umount /mnt/boot/efi
+        umount /mnt
 	shutdown -r now
 	;;
 esac
@@ -82,8 +83,8 @@ pacman-key --populate archlinux
 pacman -Syu --noconfirm archlinux-keyring
 
 # TODO: Replace xdotool
-pacman -Syu --noconfirm zsh terminus-font doas neovim termdown ripgrep gcc make cmake clang xorg-server xorg-xinit xorg-xkill xorg-xsetroot xorg-xbacklight xorg-xprop xdg-user-dirs \
-	noto-fonts noto-fonts-emoji noto-fonts-cjk ttf-jetbrains-mono ttf-joypixels ttf-font-awesome nerd-fonts \
+pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake clang xorg-server xorg-xinit xorg-xkill xorg-xsetroot xorg-xbacklight xorg-xprop xdg-user-dirs \
+	noto-fonts noto-fonts-emoji noto-fonts-cjk ttf-jetbrains-mono ttf-joypixels ttf-font-awesome ttf-meslo-nerd ttf-noto-nerd ttf-jetbrains-mono-nerd \
 	imv mpv mpd ncmpcpp zathura zathura-pdf-mupdf ffmpeg imagemagick alacritty keepassxc obsidian firefox discord dmenu telegram-desktop \
 	fzf man-db xwallpaper python-pywal unclutter xclip maim yt-dlp \
 	zip unzip unrar p7zip xdotool dosfstools ntfs-3g git sxhkd pipewire pipewire-alsa pipewire-pulse wireplumber helvum \
@@ -160,7 +161,7 @@ case $graphic in
 	echo "Warning! If you have nvidia card <800 you need install different driver. Continue? (Y/n)"
 	read notlegacy
 	if [[ $notlegacy = "Y" || $notlegacy = "y" ]]; then
-		pacman -Sy --noconfirm nvidia libva-nvidia-driver libvdpau ffnvcodec-headers
+		pacman -Sy --noconfirm nvidia libva-nvidia-driver libvdpau ffnvcodec-headers nvidia-settings
 		echo "blacklist nouveau" >/etc/modprobe.d/nouveau_blacklist.conf
 	fi
 	;;
