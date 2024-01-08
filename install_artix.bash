@@ -24,7 +24,11 @@ fstabgen -U /mnt >>/mnt/etc/fstab
 # Run part 2
 sed '1,/^#part2$/d' $(basename $0) >/mnt/artix_install2.bash
 chmod +x /mnt/artix_install2.bash
+<<<<<<< HEAD
 arch-chroot /mnt ./artix_install2.bash
+=======
+artix-chroot /mnt ./artix_install2.bash
+>>>>>>> aa2fc65 (fix: install artix)
 echo "Would you like to reboot? (Recommend) (Y/n)"
 read doreboot
 case $doreboot in
@@ -57,7 +61,11 @@ echo "::1             localhost" >>/etc/hosts
 echo "127.0.1.1       $hostname.localdomain $hostname" >>/etc/hosts
 mkinitcpio -P
 
+<<<<<<< HEAD
 pacman -S grub os-prober efibootmgr
+=======
+pacman -S --noconfirm grub os-prober efibootmgr
+>>>>>>> aa2fc65 (fix: install artix)
 echo "Enter EFI partition: "
 read efipartition
 mkdir /boot/efi
@@ -77,6 +85,10 @@ Include = /etc/pacman.d/mirrorlist-arch
 
 [multilib]
 Include = /etc/pacman.d/mirrorlist-arch' >>/etc/pacman.conf
+<<<<<<< HEAD
+=======
+pacman-key --init
+>>>>>>> aa2fc65 (fix: install artix)
 pacman-key --populate archlinux
 pacman -Syu --noconfirm archlinux-keyring
 
@@ -90,7 +102,11 @@ pacman -Syu --noconfirm zsh terminus-font doas neovim termdown ripgrep gcc make 
 	dhcpcd connman wpa_supplicant pamixer libconfig \
 	bluez bluez-utils base-devel
 
+<<<<<<< HEAD
 setfont ter-i18n
+=======
+setfont ter-i18n.psf.gz
+>>>>>>> aa2fc65 (fix: install artix)
 
 echo 'Root password:'
 passwd
