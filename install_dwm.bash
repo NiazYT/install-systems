@@ -30,7 +30,7 @@ read doreboot
 case $doreboot in
 "[Yy]")
 	umount /mnt/boot/efi
-        umount /mnt
+	umount /mnt
 	shutdown -r now
 	;;
 esac
@@ -83,7 +83,8 @@ pacman-key --populate archlinux
 pacman -Syu --noconfirm archlinux-keyring
 
 # TODO: Replace xdotool
-pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake clang xorg-server xorg-xinit xorg-xkill xorg-xsetroot xorg-xbacklight xorg-xprop xdg-user-dirs \
+pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake clang \
+	xorg-server xorg-xinit xorg-xkill xorg-xsetroot xorg-xbacklight xorg-xprop xdg-user-dirs \
 	noto-fonts noto-fonts-emoji noto-fonts-cjk ttf-jetbrains-mono ttf-joypixels ttf-font-awesome ttf-meslo-nerd ttf-noto-nerd ttf-jetbrains-mono-nerd \
 	imv mpv mpd ncmpcpp zathura zathura-pdf-mupdf ffmpeg imagemagick alacritty keepassxc obsidian firefox discord dmenu telegram-desktop \
 	fzf man-db xwallpaper python-pywal unclutter xclip maim yt-dlp \
@@ -190,8 +191,10 @@ echo "Installing dwm, dmenu, dwmblocks"
 mkdir -p ~/.local/src
 
 git clone --depth=1 "https://github.com/NiazYT/dwm" ~/.local/src/dwm
+sudo make -C ~/.local/src/dwm install
 
 git clone --depth=1 "https://github.com/NiazYT/dwmblocks" ~/.local/src/dwmblocks
+sudo make -C ~/.local/src/dwmblocks install
 
 echo "Installing configfiles"
 # Dotfiles repository
