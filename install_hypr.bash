@@ -20,7 +20,7 @@ if [[ $answer = y ]]; then
 	read efipartition
 	mkfs.vfat -F 32 $efipartition
 fi
-read -p "Did you also create efi partition? [y/n]" answer
+read -p "Did you also create swap partition? [y/n]" answer
 if [[ $answer = y ]]; then
 	lsblk
 	echo "Enter swap partition: "
@@ -101,7 +101,7 @@ pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake
 	zip unzip unrar p7zip xdotool dosfstools ntfs-3g git sxhkd pipewire pipewire-alsa pipewire-pulse wireplumber helvum \
 	rsync qutebrowser dash xcompmgr picom libnotify slock jq aria2 cowsay \
 	dhcpcd connman wpa_supplicant pamixer libconfig \
-	bluez bluez-utils base-devel opendoas qt5ct
+	bluez bluez-utils base-devel opendoas qt5ct eza bat
 
 setfont ter-i18n.psf.gz
 
@@ -119,7 +119,7 @@ chown -c root:root /etc/doas.conf
 chmod 600 /etc/doas.conf
 echo 'permit persist setenv { PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin XAUTHORITY LANG LC_ALL } :wheel' >/etc/doas.conf
 chmod -c 0400 /etc/doas.conf
-ln -s $(which doas) /usr/bin/sudo
+ln -sf $(which doas) /usr/bin/sudo
 
 echo "Installing sinit"
 mkdir /tmp
@@ -238,7 +238,7 @@ printf '\033c'
 echo "Installing hyprland"
 mkdir -p ~/.local/src
 
-pacman -Sy --noconfirm gdb ninja gcc cmake meson libxcb xcb-proto xcb-util xcb-util-keysyms libxfixes libx11 libxcomposite xorg-xinput libxrender pixman wayland-protocols cairo pango seatd libxkbcommon xcb-util-wm xorg-xwayland libinput libliftoff libdisplay-info cpio tomlplusplus
+sudo pacman -Sy --noconfirm gdb ninja gcc cmake meson libxcb xcb-proto xcb-util xcb-util-keysyms libxfixes libx11 libxcomposite xorg-xinput libxrender pixman wayland-protocols cairo pango seatd libxkbcommon xcb-util-wm xorg-xwayland libinput libliftoff libdisplay-info cpio tomlplusplus
 
 # Hyprland
 git clone --depth=1 --recursive https://github.com/hyprwm/Hyprland ~/.local/src/hyprland
@@ -290,15 +290,15 @@ yay -Syu --devel
 yay -Y --devel
 
 # AUR packages
-yay -S xremap-hypr-bin xdg-desktop-portal-hyprland-git fish foot fuzzel gjs gnome-bluetooth-3.0 gnome-control-center gnome-keyring gobject-introspection grim gtk3 gtk-layer-shell libdbusmenu-gtk3 meson npm plasma-browser-integration playerctl polkit-gnome python-pywal ripgrep sassc slurp starship swayidle typescript upower xorg-xrandr webp-pixbuf-loader wget wireplumber wl-clipboard tesseract tesseract-data-eng tesseract-data-rus yad ydotool adw-gtk3-git cava gojq gradience-git hyprpicker-git lexend-fonts-git python-material-color-utilities python-pywal python-poetry python-build python-pillow swww ttf-material-symbols-variable-git ttf-space-mono-nerd swaylock-effects-git ttf-jetbrains-mono-nerd wayland-idle-inhibitor-git wlogout wlsunset-git swaync
+yay -S xremap-hypr-bin xdg-desktop-portal-hyprland-git fish foot fuzzel gis gnome-bluetooth-3.0 gnome-control-center gnome-keyring gobject-introspection grim gtk3 gtk-layer-shell libdbusmenu-gtk3 meson npm plasma-browser-integration playerctl polkit-gnome python-pywal ripgrep sassc slurp starship swayidle typescript upower xorg-xrandr webp-pixbuf-loader wget wireplumber wl-clipboard tesseract tesseract-data-eng tesseract-data-rus yad ydotool adw-gtk3-git cava gojq gradience-git hyprpicker-git lexend-fonts-git python-material-color-utilities python-pywal python-poetry python-build python-pillow swww ttf-material-symbols-variable-git ttf-space-mono-nerd swaylock-effects-git ttf-jetbrains-mono-nerd wayland-idle-inhibitor-git wlogout wlsunset-git swaync cht.sh-git
 
 echo "Installing scripts"
 chmod +x ~/.local/bin -R
 
 echo "Installation Finish"
-ai4_path=/home/$username/afterall.bash
+ai4_path=$HOME/afterall.bash
 sed '1,/^#part4$/d' install_user.bash >$ai4_path
-chown $username:$username $ai4_path
+chown $USER:$USER $ai4_path
 chmod +x $ai4_path
 exit 0
 
