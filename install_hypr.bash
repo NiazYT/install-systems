@@ -38,8 +38,7 @@ artix-chroot /mnt ./artix_install2.bash
 read -p "Would you like to reboot? (Recommend) (Y/n)" doreboot
 case $doreboot in
 "[Yy]")
-	umount /mnt/boot/efi
-	umount /mnt
+	umount -R /mnt
 	shutdown -r now
 	;;
 esac
