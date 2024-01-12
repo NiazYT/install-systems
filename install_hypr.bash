@@ -29,7 +29,7 @@ if [[ $answer = y ]]; then
 	swapon $swappartition
 fi
 mount $partition /mnt
-basestrap /mnt base base-devel linux linux-firmware
+basestrap /mnt base base-devel linux linux-firmware dinit elogind-dinit
 fstabgen -U /mnt >>/mnt/etc/fstab
 # Run part 2
 sed '1,/^#part2$/d' $(basename $0) >/mnt/artix_install2.bash
@@ -94,14 +94,15 @@ pacman -Syu --noconfirm archlinux-keyring
 
 # TODO: Replace xdotool
 pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake clang \
-	xdg-user-dirs polkit-kde-agent qt5-wayland qt6-wayland sddm \
+	xdg-user-dirs polkit-kde-agent qt5-wayland qt6-wayland gdm \
 	noto-fonts noto-fonts-emoji noto-fonts-cjk ttf-jetbrains-mono ttf-joypixels ttf-font-awesome ttf-meslo-nerd ttf-noto-nerd ttf-jetbrains-mono-nerd \
 	imv mpv mpd ncmpcpp zathura zathura-pdf-mupdf ffmpeg imagemagick alacritty keepassxc obsidian firefox discord dmenu telegram-desktop \
 	fzf man-db unclutter xclip maim yt-dlp \
 	zip unzip unrar p7zip xdotool dosfstools ntfs-3g git sxhkd pipewire pipewire-alsa pipewire-pulse wireplumber helvum \
 	rsync qutebrowser dash xcompmgr picom libnotify slock jq aria2 cowsay \
 	dhcpcd connman wpa_supplicant pamixer libconfig \
-	bluez bluez-utils base-devel opendoas qt5ct eza bat
+	bluez bluez-utils base-devel opendoas qt5ct eza bat \
+	pipewire-dinit wireplumber-dinit pipewire-pulse-dinit gdm-dinit
 
 setfont ter-i18n.psf.gz
 
@@ -121,60 +122,9 @@ echo 'permit persist setenv { PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/
 chmod -c 0400 /etc/doas.conf
 ln -sf $(which doas) /usr/bin/sudo
 
-echo "Installing sinit"
-mkdir /tmp
-cd /tmp
-# sinit
-git clone https://git.suckless.org/sinit
-cd sinit/
-make
-make install
-cd ..
-# daemontools-encore
-git clone https://github.com/bruceg/daemontools-encore
-cd daemontools-encore/
-./makemake
-make
-make install
-cd ..
-# LittKit
-curl -o littkit.tgz http://troubleshooters.com/projects/littkit/downloads/littkit_0_90.tgz
-tar xvf littkit.tgz
-cd littkit_0_90
-cp lk_* /usr/local/bin
-cd ..
-
-git clone https://github.com/Andrey0189/sinit-scripts
-cd sinit-scripts/
-yes | ./install.sh
-cd ..
-rm -rf /tmp/*
-
-cd /
-
-mkdir /var/rc/pipewire
-echo '
-exec pipewire
-' >/var/rc/pipewire/run
-chmod u+x /var/rc/pipewire/run
-ln -s /var/rc/pipewire /etc/rc/
-# Pipewire-pulse service
-mkdir /var/rc/pipewire-pulse
-echo '
-exec pipewire-pulse
-' >/var/rc/pipewire-pulse/run
-chmod u+x /var/rc/pipewire-pulse/run
-ln -s /var/rc/pipewire-pulse /etc/rc/
-# Wireplumber service
-mkdir /var/rc/wireplumber
-echo '
-exec wireplumber
-' >/var/rc/wireplumber/run
-chmod u+x /var/rc/wireplumber/run
-ln -s /var/rc/wireplumber /etc/rc/
-echo "Add to config 'lk_prepare /etc/rc/{pipewire,pipewire-pulse,wireplumber,sddm}' and log if you want. Type anything: "
-read fuck
-nvim /etc/rc/dtinit/dtinit.sh
+dinitctl enable pipewire
+dinitctl enable pipewire-pulse
+dinitctl enable wireplumber
 
 echo "checking cpu"
 vendor=$(lscpu | grep "Vendor" | awk '{print $3}')
@@ -226,10 +176,10 @@ esac
 
 pacman -Sy --noconfirm gdb ninja gcc cmake meson libxcb xcb-proto xcb-util xcb-util-keysyms libxfixes libx11 libxcomposite xorg-xinput libxrender pixman wayland-protocols cairo pango seatd libxkbcommon xcb-util-wm xorg-xwayland libinput libliftoff libdisplay-info cpio tomlplusplus
 
-mkdir -p /home/niaz
-
 # Hyprland
-src=/home/niaz/.local/src
+src=/home/$username/.local/src
+mkdir -p $src
+
 git clone --depth=1 --recursive https://github.com/hyprwm/Hyprland $src/hyprland
 cd $src/hyprland
 mkdir -p build && cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DNO_SYSTEMD:STRING=true -H./ -B./build -G Ninja
@@ -251,12 +201,6 @@ cd $src/ags
 npm install
 meson setup build
 meson install -C build # When asked to use sudo, make sure you say yes
-
-# Yay installation
-cd /home/niaz
-git clone https://aur.archlinux.org/yay.git
-cd yay
-makepkg -si
 
 # Run 3rd part
 echo "Pre-Installation Finish"
@@ -289,6 +233,12 @@ rm ~/.zshrc ~/.zsh_history
 alias dots='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 dots config --local status.showUntrackedFiles no
 
+# Yay installation
+cd /home/niaz
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+
 # Yay
 yay -Y --gendb
 yay -Syu --devel
@@ -303,7 +253,6 @@ chmod +x ~/.local/bin -R
 echo "Installation Finish"
 ai4_path=$HOME/afterall.bash
 sed '1,/^#part4$/d' install_user.bash >$ai4_path
-chown $USER:$USER $ai4_path
 chmod +x $ai4_path
 exit 0
 
