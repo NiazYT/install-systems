@@ -1,7 +1,7 @@
 #!/bin/bash
 #part1
 printf '\033c'
-echo "Welcome to niaz's arch installer script"
+echo "Welcome to niaz's artix installer script"
 sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 8/" /etc/pacman.conf
 loadkeys us
 rc-service ntpd start

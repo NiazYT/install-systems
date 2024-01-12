@@ -1,8 +1,8 @@
 #!/bin/bash
 #part1
 printf '\033c'
-echo "Welcome to niaz's arch installer script"
-sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 8/" /etc/pacman.conf
+echo "Welcome to niaz's artix installer script"
+sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 3/" /etc/pacman.conf
 loadkeys us
 rc-service ntpd start
 lsblk
@@ -69,7 +69,7 @@ sed -i 's/GRUB_TIMEOUT=5/GRUB_TIMEOUT=0/g' /etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg
 
 echo "Installing arch linux repositories"
-sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 8/" /etc/pacman.conf
+sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 3/" /etc/pacman.conf
 pacman -Sy --noconfirm artix-archlinux-support
 echo '
 # Arch
@@ -84,12 +84,12 @@ pacman -Syu --noconfirm archlinux-keyring
 
 # TODO: Replace xdotool
 pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake clang \
-	xdg-user-dirs polkit-kde-agent qt5-wayland qt6-wayland \
+	xdg-user-dirs polkit-kde-agent qt5-wayland qt6-wayland sddm \
 	noto-fonts noto-fonts-emoji noto-fonts-cjk ttf-jetbrains-mono ttf-joypixels ttf-font-awesome ttf-meslo-nerd ttf-noto-nerd ttf-jetbrains-mono-nerd \
 	imv mpv mpd ncmpcpp zathura zathura-pdf-mupdf ffmpeg imagemagick alacritty keepassxc obsidian firefox discord dmenu telegram-desktop \
 	fzf man-db unclutter xclip maim yt-dlp \
 	zip unzip unrar p7zip xdotool dosfstools ntfs-3g git sxhkd pipewire pipewire-alsa pipewire-pulse wireplumber helvum \
-	rsync qutebrowser dash xcompmgr picom libnotify swaync slock jq aria2 cowsay \
+	rsync qutebrowser dash xcompmgr picom libnotify slock jq aria2 cowsay \
 	dhcpcd connman wpa_supplicant pamixer libconfig \
 	bluez bluez-utils base-devel opendoas qt5ct
 
@@ -103,6 +103,9 @@ read username
 useradd -m -G wheel,video,audio,input,power,storage,optical,lp,scanner,dbus,uucp -s /bin/zsh $username
 echo "Enter $username password:"
 passwd $username
+
+echo '\n%wheel      ALL=(ALL:ALL) ALL\n' >>/etc/sudoers
+# TODO: add doas
 
 echo "Installing sinit"
 mkdir /tmp
@@ -230,8 +233,8 @@ mkdir -p build && cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -
 # Building
 cmake --build ./build --config Release --target all -j $(nproc)
 # Installing
-cp ./build/Hyprland /usr/bin
-cp ./example/hyprland.desktop /usr/share/wayland-sessions
+sudo cp ./build/Hyprland /usr/bin
+sudo cp ./example/hyprland.desktop /usr/share/wayland-sessions
 
 git clone --depth=1 --recursive https://github.com/Alexays/Waybar ~/.local/src/waybar
 sed -i -e 's/zext_workspace_handle_v1_activate(workspace_handle_);/const std::string command = "hyprctl dispatch workspace " + name_;\n\tsystem(command.c_str());/g' src/modules/wlr/workspace_manager.cpp
@@ -273,7 +276,7 @@ yay -Syu --devel
 yay -Y --devel
 
 # AUR packages
-yay -S xremap-hypr-bin xdg-desktop-portal-hyprland-git fish foot fuzzel gjs gnome-bluetooth-3.0 gnome-control-center gnome-keyring gobject-introspection grim gtk3 gtk-layer-shell libdbusmenu-gtk3 meson npm plasma-browser-integration playerctl polkit-gnome python-pywal ripgrep sassc slurp starship swayidle typescript upower xorg-xrandr webp-pixbuf-loader wget wireplumber wl-clipboard tesseract tesseract-data-eng tesseract-data-rus yad ydotool adw-gtk3-git cava gojq gradience-git hyprpicker-git lexend-fonts-git python-material-color-utilities python-pywal python-poetry python-build python-pillow swww ttf-material-symbols-variable-git ttf-space-mono-nerd swaylock-effects-git ttf-jetbrains-mono-nerd wayland-idle-inhibitor-git wlogout wlsunset-git
+yay -S xremap-hypr-bin xdg-desktop-portal-hyprland-git fish foot fuzzel gjs gnome-bluetooth-3.0 gnome-control-center gnome-keyring gobject-introspection grim gtk3 gtk-layer-shell libdbusmenu-gtk3 meson npm plasma-browser-integration playerctl polkit-gnome python-pywal ripgrep sassc slurp starship swayidle typescript upower xorg-xrandr webp-pixbuf-loader wget wireplumber wl-clipboard tesseract tesseract-data-eng tesseract-data-rus yad ydotool adw-gtk3-git cava gojq gradience-git hyprpicker-git lexend-fonts-git python-material-color-utilities python-pywal python-poetry python-build python-pillow swww ttf-material-symbols-variable-git ttf-space-mono-nerd swaylock-effects-git ttf-jetbrains-mono-nerd wayland-idle-inhibitor-git wlogout wlsunset-git swaync
 
 echo "Installing scripts"
 chmod +x ~/.local/bin -R
