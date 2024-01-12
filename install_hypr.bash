@@ -224,6 +224,40 @@ EndSection' >/etc/X11/xorg.conf.d/20-intel.conf
 	;;
 esac
 
+pacman -Sy --noconfirm gdb ninja gcc cmake meson libxcb xcb-proto xcb-util xcb-util-keysyms libxfixes libx11 libxcomposite xorg-xinput libxrender pixman wayland-protocols cairo pango seatd libxkbcommon xcb-util-wm xorg-xwayland libinput libliftoff libdisplay-info cpio tomlplusplus
+
+mkdir -p /home/niaz
+
+# Hyprland
+src=/home/niaz/.local/src
+git clone --depth=1 --recursive https://github.com/hyprwm/Hyprland $src/hyprland
+cd $src/hyprland
+mkdir -p build && cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DNO_SYSTEMD:STRING=true -H./ -B./build -G Ninja
+# Building
+cmake --build ./build --config Release --target all -j $(nproc)
+# Installing
+cp ./build/Hyprland /usr/bin
+cp ./example/hyprland.desktop /usr/share/wayland-sessions
+
+git clone --depth=1 --recursive https://github.com/Alexays/Waybar $src/waybar
+cd $src/waybar
+sed -i -e 's/zext_workspace_handle_v1_activate(workspace_handle_);/const std::string command = "hyprctl dispatch workspace " + name_;\n\tsystem(command.c_str());/g' src/modules/wlr/workspace_manager.cpp
+meson --prefix=/usr --buildtype=plain --auto-features=enabled --wrap-mode=nodownload build
+meson configure -Dexperimental=true build
+ninja -C build install
+
+git clone --depth=1 --recursive https://github.com/Aylur/ags.git $src/ags
+cd $src/ags
+npm install
+meson setup build
+meson install -C build # When asked to use sudo, make sure you say yes
+
+# Yay installation
+cd /home/niaz
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+
 # Run 3rd part
 echo "Pre-Installation Finish"
 ai3_path=/home/$username/install_user.bash
@@ -237,30 +271,6 @@ exit 0
 printf '\033c'
 echo "Installing hyprland"
 mkdir -p ~/.local/src
-
-sudo pacman -Sy --noconfirm gdb ninja gcc cmake meson libxcb xcb-proto xcb-util xcb-util-keysyms libxfixes libx11 libxcomposite xorg-xinput libxrender pixman wayland-protocols cairo pango seatd libxkbcommon xcb-util-wm xorg-xwayland libinput libliftoff libdisplay-info cpio tomlplusplus
-
-# Hyprland
-git clone --depth=1 --recursive https://github.com/hyprwm/Hyprland ~/.local/src/hyprland
-cd ~/.local/src/hyprland
-mkdir -p build && cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DNO_SYSTEMD:STRING=true -H./ -B./build -G Ninja
-# Building
-cmake --build ./build --config Release --target all -j $(nproc)
-# Installing
-sudo cp ./build/Hyprland /usr/bin
-sudo cp ./example/hyprland.desktop /usr/share/wayland-sessions
-
-git clone --depth=1 --recursive https://github.com/Alexays/Waybar ~/.local/src/waybar
-sed -i -e 's/zext_workspace_handle_v1_activate(workspace_handle_);/const std::string command = "hyprctl dispatch workspace " + name_;\n\tsystem(command.c_str());/g' src/modules/wlr/workspace_manager.cpp
-meson --prefix=/usr --buildtype=plain --auto-features=enabled --wrap-mode=nodownload build
-meson configure -Dexperimental=true build
-sudo ninja -C build install
-
-git clone --depth=1 --recursive https://github.com/Aylur/ags.git ~/.local/src/ags
-cd ~/.local/src/ags
-npm install
-meson setup build
-sudo meson install -C build # When asked to use sudo, make sure you say yes
 
 echo "Installing configfiles"
 # Dotfiles repository
@@ -278,11 +288,6 @@ mv ~/.oh-my-zsh ~/.config/zsh/oh-my-zsh
 rm ~/.zshrc ~/.zsh_history
 alias dots='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 dots config --local status.showUntrackedFiles no
-
-# Yay installation
-git clone https://aur.archlinux.org/yay.git
-cd yay
-makepkg -si
 
 # Yay
 yay -Y --gendb
