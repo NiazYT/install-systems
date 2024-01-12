@@ -9,14 +9,24 @@ lsblk
 echo "Enter the drive: "
 read drive
 cfdisk $drive
+lsblk
 echo "Enter the linux partition: "
 read partition
 mkfs.ext4 $partition
 read -p "Did you also create efi partition? [y/n]" answer
 if [[ $answer = y ]]; then
+	lsblk
 	echo "Enter EFI partition: "
 	read efipartition
 	mkfs.vfat -F 32 $efipartition
+fi
+read -p "Did you also create efi partition? [y/n]" answer
+if [[ $answer = y ]]; then
+	lsblk
+	echo "Enter swap partition: "
+	read swappartition
+	mkswap $swappartition
+	swapon $swappartition
 fi
 mount $partition /mnt
 basestrap /mnt base base-devel linux linux-firmware
@@ -25,8 +35,7 @@ fstabgen -U /mnt >>/mnt/etc/fstab
 sed '1,/^#part2$/d' $(basename $0) >/mnt/artix_install2.bash
 chmod +x /mnt/artix_install2.bash
 artix-chroot /mnt ./artix_install2.bash
-echo "Would you like to reboot? (Recommend) (Y/n)"
-read doreboot
+read -p "Would you like to reboot? (Recommend) (Y/n)" doreboot
 case $doreboot in
 "[Yy]")
 	umount /mnt/boot/efi
@@ -59,6 +68,7 @@ echo "127.0.1.1       $hostname.localdomain $hostname" >>/etc/hosts
 mkinitcpio -P
 
 pacman -Sy --noconfirm grub os-prober efibootmgr
+lsblk
 echo "Enter EFI partition: "
 read efipartition
 mkdir /boot/efi
@@ -104,8 +114,12 @@ useradd -m -G wheel,video,audio,input,power,storage,optical,lp,scanner,dbus,uucp
 echo "Enter $username password:"
 passwd $username
 
-echo '\n%wheel      ALL=(ALL:ALL) ALL\n' >>/etc/sudoers
-# TODO: add doas
+touch /etc/doas.conf
+chown -c root:root /etc/doas.conf
+chmod 600 /etc/doas.conf
+echo 'permit persist setenv { PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin XAUTHORITY LANG LC_ALL } :wheel' >/etc/doas.conf
+chmod -c 0400 /etc/doas.conf
+ln -s $(which doas) /usr/bin/sudo
 
 echo "Installing sinit"
 mkdir /tmp
@@ -240,13 +254,13 @@ git clone --depth=1 --recursive https://github.com/Alexays/Waybar ~/.local/src/w
 sed -i -e 's/zext_workspace_handle_v1_activate(workspace_handle_);/const std::string command = "hyprctl dispatch workspace " + name_;\n\tsystem(command.c_str());/g' src/modules/wlr/workspace_manager.cpp
 meson --prefix=/usr --buildtype=plain --auto-features=enabled --wrap-mode=nodownload build
 meson configure -Dexperimental=true build
-ninja -C build install
+sudo ninja -C build install
 
 git clone --depth=1 --recursive https://github.com/Aylur/ags.git ~/.local/src/ags
 cd ~/.local/src/ags
 npm install
 meson setup build
-meson install -C build # When asked to use sudo, make sure you say yes
+sudo meson install -C build # When asked to use sudo, make sure you say yes
 
 echo "Installing configfiles"
 # Dotfiles repository
@@ -286,7 +300,6 @@ ai4_path=/home/$username/afterall.bash
 sed '1,/^#part4$/d' install_user.bash >$ai4_path
 chown $username:$username $ai4_path
 chmod +x $ai4_path
-su -c $ai4_path -s /bin/bash $username
 exit 0
 
 #part4
