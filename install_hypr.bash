@@ -102,7 +102,7 @@ pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake
 	rsync qutebrowser dash xcompmgr picom libnotify slock jq aria2 cowsay \
 	dhcpcd connman wpa_supplicant pamixer libconfig \
 	bluez bluez-utils base-devel opendoas qt5ct eza bat \
-	pipewire-dinit wireplumber-dinit pipewire-pulse-dinit gdm-dinit
+	pipewire-dinit wireplumber-dinit pipewire-pulse-dinit gdm-dinit connman-dinit
 
 setfont ter-i18n.psf.gz
 
@@ -122,6 +122,7 @@ echo 'permit persist setenv { PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/
 chmod -c 0400 /etc/doas.conf
 ln -sf $(which doas) /usr/bin/sudo
 
+dinitctl enable connmand
 dinitctl enable pipewire
 dinitctl enable pipewire-pulse
 dinitctl enable wireplumber
