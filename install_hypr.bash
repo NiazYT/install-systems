@@ -29,7 +29,7 @@ if [[ $answer = y ]]; then
 	swapon $swappartition
 fi
 mount $partition /mnt
-basestrap /mnt base base-devel linux linux-firmware dinit elogind-dinit
+basestrap /mnt base base-devel linux linux-firmware openrc elogind-openrc
 fstabgen -U /mnt >>/mnt/etc/fstab
 # Run part 2
 sed '1,/^#part2$/d' $(basename $0) >/mnt/artix_install2.bash
@@ -93,7 +93,7 @@ pacman -Syu --noconfirm archlinux-keyring
 
 # TODO: Replace xdotool
 pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake clang \
-	xdg-user-dirs polkit-kde-agent qt5-wayland qt6-wayland gdm \
+	xdg-user-dirs polkit-kde-agent qt5-wayland qt6-wayland gdm waybar \
 	noto-fonts noto-fonts-emoji noto-fonts-cjk ttf-jetbrains-mono ttf-joypixels ttf-font-awesome ttf-meslo-nerd ttf-noto-nerd ttf-jetbrains-mono-nerd \
 	imv mpv mpd ncmpcpp zathura zathura-pdf-mupdf ffmpeg imagemagick alacritty keepassxc obsidian firefox discord dmenu telegram-desktop \
 	fzf man-db unclutter xclip maim yt-dlp \
@@ -101,7 +101,7 @@ pacman -Syu --noconfirm zsh terminus-font neovim termdown ripgrep gcc make cmake
 	rsync qutebrowser dash xcompmgr picom libnotify slock jq aria2 cowsay \
 	dhcpcd connman wpa_supplicant pamixer libconfig \
 	bluez bluez-utils base-devel opendoas qt5ct eza bat \
-	pipewire-dinit wireplumber-dinit pipewire-pulse-dinit gdm-dinit connman-dinit
+	gdm-openrc connman-openrc dash
 
 setfont ter-i18n.psf.gz
 
@@ -121,10 +121,9 @@ echo 'permit persist setenv { PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/
 chmod -c 0400 /etc/doas.conf
 ln -sf $(which doas) /usr/bin/sudo
 
-dinitctl enable connmand
-dinitctl enable pipewire
-dinitctl enable pipewire-pulse
-dinitctl enable wireplumber
+sed '1,/^#rc_parallel="NO"$/rc_parallel="YES"/'
+rc-update add connmand
+rc-update add gdm
 
 echo "checking cpu"
 vendor=$(lscpu | grep "Vendor" | awk '{print $3}')
@@ -189,20 +188,8 @@ cmake --build ./build --config Release --target all -j $(nproc)
 cp ./build/Hyprland /usr/bin
 cp ./example/hyprland.desktop /usr/share/wayland-sessions
 
-git clone --depth=1 --recursive https://github.com/Alexays/Waybar $src/waybar
-cd $src/waybar
-sed -i -e 's/zext_workspace_handle_v1_activate(workspace_handle_);/const std::string command = "hyprctl dispatch workspace " + name_;\n\tsystem(command.c_str());/g' src/modules/wlr/workspace_manager.cpp
-meson --prefix=/usr --buildtype=plain --auto-features=enabled --wrap-mode=nodownload build
-meson configure -Dexperimental=true build
-ninja -C build install
-
-git clone --depth=1 --recursive https://github.com/Aylur/ags.git $src/ags
-cd $src/ags
-npm install
-meson setup build
-meson install -C build # When asked to use sudo, make sure you say yes
-
 # Run 3rd part
+cd /
 echo "Pre-Installation Finish"
 ai3_path=/home/$username/install_user.bash
 sed '1,/^#part3$/d' artix_install2.bash >$ai3_path
@@ -245,7 +232,7 @@ yay -Syu --devel
 yay -Y --devel
 
 # AUR packages
-yay -S xremap-hypr-bin xdg-desktop-portal-hyprland-git fish foot fuzzel gis gnome-bluetooth-3.0 gnome-control-center gnome-keyring gobject-introspection grim gtk3 gtk-layer-shell libdbusmenu-gtk3 meson npm plasma-browser-integration playerctl polkit-gnome python-pywal ripgrep sassc slurp starship swayidle typescript upower xorg-xrandr webp-pixbuf-loader wget wireplumber wl-clipboard tesseract tesseract-data-eng tesseract-data-rus yad ydotool adw-gtk3-git cava gojq gradience-git hyprpicker-git lexend-fonts-git python-material-color-utilities python-pywal python-poetry python-build python-pillow swww ttf-material-symbols-variable-git ttf-space-mono-nerd swaylock-effects-git ttf-jetbrains-mono-nerd wayland-idle-inhibitor-git wlogout wlsunset-git swaync cht.sh-git
+yay -S xremap-hypr-bin xdg-desktop-portal-hyprland-git fish foot fuzzel gis gnome-bluetooth-3.0 gnome-control-center gnome-keyring gobject-introspection grim gtk3 gtk-layer-shell libdbusmenu-gtk3 meson npm plasma-browser-integration playerctl polkit-gnome python-pywal ripgrep sassc slurp starship swayidle typescript upower xorg-xrandr webp-pixbuf-loader wget wireplumber wl-clipboard tesseract tesseract-data-eng tesseract-data-rus yad ydotool adw-gtk3-git cava gojq gradience-git hyprpicker-git lexend-fonts-git python-material-color-utilities python-pywal python-poetry python-build python-pillow swww ttf-material-symbols-variable-git ttf-space-mono-nerd swaylock-effects-git ttf-jetbrains-mono-nerd wayland-idle-inhibitor-git wlogout wlsunset-git swaync cht.sh-git dashbinsh
 
 echo "Installing scripts"
 chmod +x ~/.local/bin -R
@@ -258,6 +245,16 @@ exit 0
 
 #part4
 printf '\033c'
+
+echo "Installing ags"
+cd ~/.local/src # Let's not trash your home folder
+git clone --recursive https://github.com/Aylur/ags.git
+cd ags
+npm install
+meson setup build
+meson install -C build # When asked to use sudo, make sure you say yes
+
+echo "Git ssh key"
 echo "Write username for git:"
 read gitusername
 echo "Write email for git:"
